@@ -4,6 +4,7 @@ import argparse
 import os
 import shutil
 import subprocess
+import sys
 
 import gitlab
 
@@ -76,12 +77,18 @@ def list_container_images(gitlab_url="https://gitlab-ex.sandia.gov", project_id=
 
 parser = argparse.ArgumentParser()
 parser.add_argument("IMAGES", nargs="*")
-parser.add_argument("--skip-login", action="store_true", help="Skip registry login")
+parser.add_argument("--no-push", action="store_true", help="Skip pushing images and associated actions")
+parser.add_argument("--list", action="store_true", help="List available images to build")
 args = parser.parse_args()
+
+if args.list:
+    for entry in DEPLOYS:
+        print(entry["image_name"])
+    sys.exit(0)
 
 repo_root = os.path.abspath(os.path.dirname(__file__))
 
-if not args.skip_login:
+if not args.no_push:
     subprocess.check_call(
         [
             "docker",
@@ -130,9 +137,10 @@ for image in deploys:
         + ":"
         + dockerfile_ts
     )
-    if tag in list_container_images():
-        print(f"tag {tag} already exists in container registry, skipping build")
-        continue
+    if not args.no_push:
+        if tag in list_container_images():
+            print(f"tag {tag} already exists in container registry, skipping build")
+            continue
     build_args.append(f"AT2_image_fullpath={tag}")
     build_args.append(f"AT2_image={image['image_name']}")
     print(f"Building Dockerfile '{dockerfile}' with args {build_args}")
@@ -146,8 +154,10 @@ for image in deploys:
     except subprocess.CalledProcessError as e:
         print(f"check_call() returned {e.returncode}")
         continue
-    subprocess.check_call(["podman", "push", tag])
-    latest_tag = (
-        REGISTRY + ("/production/" if image["production"] else "/experimental/") + image["image_name"] + ":latest"
-    )
-    subprocess.check_call(["podman", "push", tag, latest_tag])
+
+    if not args.no_push:
+        subprocess.check_call(["podman", "push", tag])
+        latest_tag = (
+            REGISTRY + ("/production/" if image["production"] else "/experimental/") + image["image_name"] + ":latest"
+        )
+        subprocess.check_call(["podman", "push", tag, latest_tag])
