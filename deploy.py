@@ -26,12 +26,6 @@ DEPLOYS = [
         "production": True,
     },
     {
-        "image_name": "ubi8-gcc-8.3.0-serial",
-        "dockerfile": "gnu-serial",
-        "build_args": {"compiler_version": "@8.3.0"},
-        "production": True,
-    },
-    {
         "image_name": "ubi10-gcc-14",
         "dockerfile": "gnu-ubi10",
         "build_args": {"compiler_version": "@14"},
