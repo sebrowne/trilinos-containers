@@ -14,6 +14,13 @@ DEPLOYS = [
         "production": False,
     },
     {
+        "image_name": "ubuntu-gcc-12.3.0-openmpi-4.1.6",
+        "dockerfile": "ubuntu-gnu-openmpi",
+        "build_args": {"compiler_version": "@12.3.0", "mpi_version": "@4.1.6"},
+        "production": False,
+    },
+
+    {
         "image_name": "ubi8-gcc-10.4.0-openmpi-4.1.6",
         "dockerfile": "gnu-openmpi",
         "build_args": {"compiler_version": "@10.4.0", "mpi_version": "@4.1.6"},
